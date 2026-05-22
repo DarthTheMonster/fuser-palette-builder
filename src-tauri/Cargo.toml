@@ -1,0 +1,20 @@
+[package]
+name = "fuser_palette_builder"
+version = "0.1.0"
+description = "FUSER Palette Builder"
+authors = ["Darth"]
+edition = "2021"
+
+[lib]
+name = "fuser_palette_builder_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
