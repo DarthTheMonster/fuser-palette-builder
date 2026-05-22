@@ -14,28 +14,29 @@ const PAK_MAGIC = 0x5a6f12e1;
 const PAK_VERSION = 8;
 const SIG_MAGIC = 0x73832daa;
 
-const ROWS = [
-  { row: 0, key: "BeatBase", label: "Beat Base", deck: "Deck 1 / Beat", defaultHex: "#309BBF" },
-  { row: 2, key: "BassBase", label: "Bass Base", deck: "Deck 2 / Bass", defaultHex: "#1997CF" },
-  { row: 4, key: "LoopBase", label: "Loop Base", deck: "Deck 3 / Loop", defaultHex: "#0084C4" },
-  { row: 6, key: "LeadBase", label: "Lead Base", deck: "Deck 4 / Lead", defaultHex: "#904BF2" },
-  { row: 1, key: "BeatSecondary", label: "Beat Secondary", deck: "Secondary", defaultHex: "#F279E6" },
-  { row: 3, key: "BassSecondary", label: "Bass Secondary", deck: "Secondary", defaultHex: "#309BBF" },
-  { row: 5, key: "LoopSecondary", label: "Loop Secondary", deck: "Secondary", defaultHex: "#904BF2" },
-  { row: 7, key: "LeadSecondary", label: "Lead Secondary", deck: "Secondary", defaultHex: "#058EAC" },
-  { row: 8, key: "BeatTertiary", label: "Beat Tertiary", deck: "Tertiary", defaultHex: "#3BEDA7" },
-  { row: 9, key: "BassTertiary", label: "Bass Tertiary", deck: "Tertiary", defaultHex: "#9A50D3" },
-  { row: 10, key: "LoopTertiary", label: "Loop Tertiary", deck: "Tertiary", defaultHex: "#3BEDA7" },
-  { row: 11, key: "LeadTertiary", label: "Lead Tertiary", deck: "Tertiary", defaultHex: "#3BEDA7" },
+const PRIMARY_ROWS = [
+  { row: 0, key: "BeatBase", label: "Deck 1", sublabel: "Beat Base", defaultHex: "#309BBF" },
+  { row: 2, key: "BassBase", label: "Deck 2", sublabel: "Bass Base", defaultHex: "#904BF2" },
+  { row: 4, key: "LoopBase", label: "Deck 3", sublabel: "Loop Base", defaultHex: "#FF4F6C" },
+  { row: 6, key: "LeadBase", label: "Deck 4", sublabel: "Lead Base", defaultHex: "#E69E39" },
 ];
 
-const COLUMNS = ["PC", "PS4", "XboxOne", "Switch", "Demo", "Protanopia", "Deutaranopia", "Tritanopia"];
-const TEST_PRESET = {
-  BeatBase: "#FF0000",
-  BassBase: "#00FF00",
-  LoopBase: "#0000FF",
-  LeadBase: "#FFFFFF",
-};
+const SECONDARY_ROWS = [
+  { row: 1, key: "BeatSecondary", label: "Deck 1", sublabel: "Beat Secondary", defaultHex: "#3BEDA7" },
+  { row: 3, key: "BassSecondary", label: "Deck 2", sublabel: "Bass Secondary", defaultHex: "#67C9FF" },
+  { row: 5, key: "LoopSecondary", label: "Deck 3", sublabel: "Loop Secondary", defaultHex: "#9D65F9" },
+  { row: 7, key: "LeadSecondary", label: "Deck 4", sublabel: "Lead Secondary", defaultHex: "#FE5C58" },
+];
+
+const TERTIARY_ROWS = [
+  { row: 8, key: "BeatTertiary", label: "Deck 1", sublabel: "Beat Tertiary", defaultHex: "#904BF2" },
+  { row: 9, key: "BassTertiary", label: "Deck 2", sublabel: "Bass Tertiary", defaultHex: "#FD4FFF" },
+  { row: 10, key: "LoopTertiary", label: "Deck 3", sublabel: "Loop Tertiary", defaultHex: "#FFE033" },
+  { row: 11, key: "LeadTertiary", label: "Deck 4", sublabel: "Lead Tertiary", defaultHex: "#F2CF10" },
+];
+
+const ROWS = [...PRIMARY_ROWS, ...SECONDARY_ROWS, ...TERTIARY_ROWS];
+const ORIGINAL_PRESET = Object.fromEntries(ROWS.map((r) => [r.key, r.defaultHex]));
 
 function srgbToLinear01(c) {
   const v = c / 255;
@@ -46,8 +47,12 @@ function linearToSrgbByte(v) {
   const s = x <= 0.0031308 ? x * 12.92 : 1.055 * Math.pow(x, 1 / 2.4) - 0.055;
   return Math.max(0, Math.min(255, Math.round(s * 255)));
 }
+function normalizeHex(hex) {
+  const clean = String(hex || "").replace(/[^0-9a-fA-F]/g, "").padEnd(6, "0").slice(0, 6);
+  return `#${clean}`.toUpperCase();
+}
 function hexToLinearRgba(hex) {
-  const clean = hex.replace("#", "").padEnd(6, "0").slice(0, 6);
+  const clean = normalizeHex(hex).replace("#", "");
   const r = parseInt(clean.slice(0, 2), 16);
   const g = parseInt(clean.slice(2, 4), 16);
   const b = parseInt(clean.slice(4, 6), 16);
@@ -109,37 +114,97 @@ function crc32(bytes) {
   for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 255] ^ (c >>> 8);
   return (c ^ 0xffffffff) >>> 0;
 }
+const SIG_TEMPLATE = new Uint8Array([152, 254, 213, 19, 9, 231, 185, 133, 177, 147, 127, 129, 201, 32, 95, 129, 121, 155, 59, 46, 5, 65, 119, 132, 82, 176, 210, 231, 19, 119, 2, 157, 89, 35, 211, 47, 8, 6, 144, 236, 22, 193, 11, 16, 156, 195, 26, 238, 9, 50, 118, 234, 184, 231, 175, 159, 25, 208, 0, 166, 54, 87, 125, 135, 113, 146, 134, 213, 36, 224, 34, 1, 237, 229, 182, 179, 55, 189, 88, 88, 165, 183, 111, 33, 96, 189, 36, 113, 134, 184, 107, 146, 184, 3, 39, 12, 112, 240, 6, 153, 93, 16, 35, 190, 11, 80, 7, 134, 173, 24, 136, 18, 73, 225, 106, 166, 236, 29, 85, 171, 26, 194, 50, 117, 84, 16, 124, 26, 25, 225, 41, 244, 195, 148, 14, 183, 141, 164, 11, 198, 137, 217, 82, 131, 11, 148, 184, 66, 91, 13, 20, 178, 8, 105, 32, 165, 9, 49, 131, 125, 189, 134, 188, 11, 53, 61, 87, 3, 190, 170, 236, 38, 238, 192, 120, 60, 56, 153, 36, 123, 202, 197, 163, 188, 101, 90, 155, 14, 44, 153, 48, 139, 139, 210, 25, 253, 86, 217, 108, 240, 248, 254, 180, 248, 126, 214, 188, 107, 162, 211, 239, 147, 63, 136, 25, 115, 193, 2, 213, 246, 206, 189, 125, 43, 14, 117, 247, 178, 9, 120, 28, 28, 215, 50, 1, 138, 232, 22, 88, 72, 148, 58, 123, 44, 63, 135, 60, 192, 75, 94, 228, 232, 176, 110, 30, 68, 90, 26, 191, 114, 68, 39, 122, 39, 73, 242, 68, 220, 187, 135, 22, 255, 175, 205, 99, 209, 175, 72, 255, 7, 128, 152, 239, 34, 125, 238, 34, 95, 203, 112, 81, 139, 118, 6, 83, 148, 174, 118, 50, 10, 130, 111, 177, 125, 178, 151, 6, 84, 156, 99, 74, 2, 208, 186, 213, 89, 44, 1, 154, 22, 160, 14, 87, 63, 175, 244, 189, 190, 117, 7, 58, 118, 211, 56, 154, 38, 198, 151, 186, 206, 35, 65, 198, 142, 216, 12, 37, 224, 30, 161, 26, 66, 98, 80, 194, 77, 242, 121, 184, 50, 185, 189, 48, 159, 226, 255, 98, 166, 114, 8, 223, 68, 248, 194, 250, 155, 160, 233, 107, 105, 128, 239, 68, 145, 188, 139, 148, 72, 211, 176, 86, 199, 77, 84, 234, 249, 50, 97, 77, 154, 91, 93, 127, 157, 152, 160, 156, 154, 109, 17, 1, 191, 166, 236, 217, 126, 78, 113, 106, 199, 50, 213, 16, 38, 88, 194, 58, 189, 169, 77, 120, 32, 63, 254, 219, 110, 234, 6, 175, 166, 170, 175, 86, 198, 149, 58, 14, 137, 163, 82, 144, 9, 236, 99, 218, 117, 32, 101, 175, 249, 188, 108, 217, 95, 0, 238, 34, 47, 85, 76, 156, 46, 254, 106, 31, 61, 204, 207, 36, 213, 24, 37, 155, 129, 5, 37, 173, 36, 33, 194, 108, 196, 20, 139, 82, 234, 43, 44, 50, 87, 93, 180, 222, 153, 53, 6, 73, 251, 69, 127, 58, 202]);
+
 function buildSig(pakBytes) {
-  const w = new BinWriter();
-  w.u32(SIG_MAGIC); w.u32(1); w.u32(512); w.zero(512);
+  const crcs = [];
   const chunk = 64 * 1024;
-  for (let o = 0; o < pakBytes.length; o += chunk) w.u32(crc32(pakBytes.slice(o, Math.min(o + chunk, pakBytes.length))));
+
+  for (let o = 0; o < pakBytes.length; o += chunk) {
+    crcs.push(crc32(pakBytes.slice(o, Math.min(o + chunk, pakBytes.length))));
+  }
+
+  const w = new BinWriter();
+  w.u32(SIG_MAGIC);
+  w.u32(1);
+  w.u32(512);
+  w.bytesArr(SIG_TEMPLATE);
+  w.u32(crcs.length);
+
+  for (const c of crcs) {
+    w.u32(c);
+  }
+
   return w.out();
 }
 async function buildPak(files) {
-  const usable = files.filter((f) => f?.bytes?.length && /\.(uasset|uexp)$/i.test(f.name));
-  if (usable.length !== 2) throw new Error("Load both TS_LUT_UIPalette.uasset and TS_LUT_UIPalette.uexp before building the pak.");
+  const usable = files
+    .filter((f) => f?.bytes?.length && /\.(uasset|uexp)$/i.test(f.name))
+    .sort((a, b) => {
+      const an = basename(a.name).toLowerCase();
+      const bn = basename(b.name).toLowerCase();
+      if (an.endsWith(".uasset") && bn.endsWith(".uexp")) return -1;
+      if (an.endsWith(".uexp") && bn.endsWith(".uasset")) return 1;
+      return an.localeCompare(bn);
+    });
+
+  if (usable.length !== 2) {
+    throw new Error("Load both TS_LUT_UIPalette.uasset and TS_LUT_UIPalette.uexp before building the pak.");
+  }
+
+  const names = usable.map((f) => basename(f.name).toLowerCase());
+  if (!names.includes("ts_lut_uipalette.uasset") || !names.includes("ts_lut_uipalette.uexp")) {
+    throw new Error("Internal pak build expects TS_LUT_UIPalette.uasset and TS_LUT_UIPalette.uexp.");
+  }
+
   const data = new BinWriter();
   const entries = [];
+
   for (const file of usable) {
     const name = basename(file.name);
     const offset = data.length;
     const hash = await sha1(file.bytes);
-    data.u64(offset); data.u64(file.bytes.length); data.u64(file.bytes.length); data.u32(0); data.bytesArr(hash); data.u32(0); data.u8(0);
+
+    data.u64(offset);
+    data.u64(file.bytes.length);
+    data.u64(file.bytes.length);
+    data.u32(0);
+    data.bytesArr(hash);
+    data.u32(0);
+    data.u8(0);
+
     data.bytesArr(file.bytes);
     entries.push({ name, offset, size: file.bytes.length, hash });
   }
+
   const index = new BinWriter();
   index.str(MOUNT_POINT);
   index.i32(entries.length);
+
   for (const e of entries) {
     index.str(e.name);
-    index.u64(e.offset); index.u64(e.size); index.u64(e.size); index.u32(0); index.bytesArr(e.hash); index.u32(0); index.u8(0);
+    index.u64(e.offset);
+    index.u64(e.size);
+    index.u64(e.size);
+    index.u32(0);
+    index.bytesArr(e.hash);
+    index.u32(0);
+    index.u8(0);
   }
+
   const indexBytes = index.out();
   const indexHash = await sha1(indexBytes);
+
   const footer = new BinWriter();
-  footer.u32(PAK_MAGIC); footer.u32(PAK_VERSION); footer.u64(data.length); footer.u64(indexBytes.length); footer.bytesArr(indexHash); footer.zero(160);
+  footer.zero(16);
+  footer.u8(0);
+  footer.u32(PAK_MAGIC);
+  footer.u32(PAK_VERSION);
+  footer.u64(data.length);
+  footer.u64(indexBytes.length);
+  footer.bytesArr(indexHash);
+  footer.zero(160);
+
   return concatArrays([data.out(), indexBytes, footer.out()]);
 }
 function checkUexp(bytes) {
@@ -174,13 +239,62 @@ function patchUexp(originalBytes, colors, patchAllColumns) {
   return out;
 }
 
+function ColorCard({ rowDef, color, setColor }) {
+  return (
+    <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-4 space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-lg font-bold">{rowDef.label}</div>
+          <div className="text-sm text-zinc-400">{rowDef.sublabel}</div>
+        </div>
+        <div className="text-xs text-zinc-600 font-mono">row {rowDef.row}</div>
+      </div>
+
+      <div
+        className="h-16 w-full rounded-xl border border-zinc-700 pointer-events-none shadow-inner"
+        style={{ background: color }}
+        title="Color preview"
+      />
+
+      <div className="flex flex-wrap gap-2 items-center">
+        <input
+          type="color"
+          value={color}
+          onChange={(e) => setColor(rowDef.key, e.target.value)}
+          className="w-12 h-10"
+          title="Pick color"
+        />
+        <input
+          value={color}
+          onChange={(e) => setColor(rowDef.key, e.target.value)}
+          onBlur={(e) => setColor(rowDef.key, normalizeHex(e.target.value))}
+          className="min-w-0 flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 font-mono text-sm"
+        />
+      </div>
+    </div>
+  );
+}
+
+function RowGroup({ title, rows, colors, setColor }) {
+  return (
+    <section className="space-y-3">
+      <h3 className="text-xl font-semibold text-cyan-200">{title}</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-3">
+        {rows.map((r) => (
+          <ColorCard key={r.key} rowDef={r} color={colors[r.key]} setColor={setColor} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   const [uasset, setUasset] = useState(null);
   const [uexp, setUexp] = useState(null);
   const [patchedUexp, setPatchedUexp] = useState(null);
   const [patchAllColumns, setPatchAllColumns] = useState(true);
   const [status, setStatus] = useState("Load TS_LUT_UIPalette.uasset and TS_LUT_UIPalette.uexp.");
-  const [colors, setColors] = useState(() => Object.fromEntries(ROWS.map((r) => [r.key, r.defaultHex])));
+  const [colors, setColors] = useState(() => ({ ...ORIGINAL_PRESET }));
 
   const loadedPreview = useMemo(() => {
     if (!uexp?.bytes) return [];
@@ -212,10 +326,15 @@ export default function App() {
         next[r.key] = linearRgbaToHex(rr, gg, bb);
       }
       setColors(next);
-      setStatus(`Loaded ${file.name}. Read row colors from column 0.`);
+      setStatus(`Loaded ${file.name}. Read editable colors from column 0.`);
     }
   }
-  function setColor(key, hex) { setColors((c) => ({ ...c, [key]: hex.toUpperCase() })); }
+
+  function setColor(key, hex) {
+    setColors((c) => ({ ...c, [key]: normalizeHex(hex) }));
+    setPatchedUexp(null);
+  }
+
   function resetFromLoaded() {
     if (!uexp?.bytes) return;
     const next = { ...colors };
@@ -224,23 +343,32 @@ export default function App() {
       next[r.key] = linearRgbaToHex(rr, gg, bb);
     }
     setColors(next);
+    setPatchedUexp(null);
     setStatus("Reset controls to loaded TS_LUT_UIPalette values.");
   }
-  function applyTestPreset() {
-    setColors((c) => ({ ...c, ...TEST_PRESET }));
-    setStatus("Applied obvious test preset: Beat red, Bass green, Loop blue, Lead white.");
+
+  function applyOriginalPreset() {
+    setColors({ ...ORIGINAL_PRESET });
+    setPatchedUexp(null);
+    setStatus("Applied original TS_LUT_UIPalette colors.");
   }
+
   function makePatched() {
-    if (!uexp?.bytes) { setStatus("Load TS_LUT_UIPalette.uexp first."); return null; }
+    if (!uexp?.bytes) {
+      setStatus("Load TS_LUT_UIPalette.uexp first.");
+      return null;
+    }
     const bytes = patchUexp(uexp.bytes, colors, patchAllColumns);
     setPatchedUexp(bytes);
-    setStatus(`Patched UEXP in memory. ${patchAllColumns ? "All 8 columns" : "Only column 0"} were patched for the listed rows.`);
+    setStatus(`Patched UEXP in memory. ${patchAllColumns ? "All 8 columns" : "Only column 0"} were patched for the listed colors.`);
     return bytes;
   }
+
   function exportUexp() {
     const bytes = patchedUexp || makePatched();
     if (bytes) downloadBytes("TS_LUT_UIPalette.uexp", bytes);
   }
+
   async function generatePakSig() {
     if (!uasset?.bytes) return setStatus("Load TS_LUT_UIPalette.uasset first.");
     const uexpBytes = patchedUexp || makePatched();
@@ -259,13 +387,27 @@ export default function App() {
     }
   }
 
+  const pakBuilderPanel = (
+    <Card className="bg-zinc-900 border-zinc-800">
+      <CardContent className="p-5 space-y-3">
+        <h2 className="text-xl font-semibold flex items-center gap-2"><Package className="w-5 h-5"/>Internal pak builder</h2>
+        <p className="text-sm text-zinc-400">Outputs {PAK_NAME} and {SIG_NAME}. Place both in FUSER's ~mods folder.</p>
+        <Button onClick={makePatched} className="w-full gap-2"><ShieldCheck className="w-4 h-4"/>Patch UEXP in memory</Button>
+        <Button onClick={exportUexp} className="w-full gap-2 bg-zinc-700 text-zinc-100 hover:bg-zinc-600"><Download className="w-4 h-4"/>Export patched .uexp only</Button>
+        <Button onClick={generatePakSig} className="w-full gap-2"><Package className="w-4 h-4"/>Generate PAK + SIG</Button>
+        <Button onClick={applyOriginalPreset} className="w-full gap-2 bg-fuchsia-500 hover:bg-fuchsia-400"><Palette className="w-4 h-4"/>Apply original colors</Button>
+        <Button onClick={resetFromLoaded} className="w-full gap-2 bg-zinc-700 text-zinc-100 hover:bg-zinc-600"><RotateCcw className="w-4 h-4"/>Reset from loaded file</Button>
+      </CardContent>
+    </Card>
+  );
+
   return (
-    <main className="min-h-screen p-6 md:p-8 bg-zinc-950 text-zinc-100">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <main className="min-h-screen p-4 md:p-6 bg-zinc-950 text-zinc-100 overflow-x-hidden">
+      <div className="w-full max-w-[1500px] mx-auto space-y-6">
         <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="flex items-center gap-3 text-cyan-300 mb-2"><Palette className="w-7 h-7"/><span className="text-sm uppercase tracking-widest">TS_LUT_UIPalette workflow</span></div>
-            <h1 className="text-3xl md:text-5xl font-bold">FUSER Palette Builder</h1>
+            <h1 className="text-3xl md:text-4xl font-bold leading-tight">FUSER Palette Builder</h1>
             <p className="text-zinc-400 mt-3 max-w-4xl">Patches the confirmed runtime palette source, then builds a minimal replacement .pak and .sig internally. No UnrealPak.exe required.</p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -274,63 +416,44 @@ export default function App() {
           </div>
         </header>
 
-        <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-5 space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-            <div><span className="text-zinc-500">UAsset:</span> <span className="font-mono">{uasset?.name || "not loaded"}</span></div>
-            <div><span className="text-zinc-500">UExp:</span> <span className="font-mono">{uexp?.name || "not loaded"}</span></div>
-            <div><span className="text-zinc-500">Palette:</span> <span className="font-mono">offset 0xAD, 8 × 32, float32 RGBA</span></div>
-          </div>
-          <div className="rounded-xl bg-zinc-950 border border-zinc-800 p-3 text-sm text-zinc-300 whitespace-pre-wrap">{status}</div>
-        </CardContent></Card>
+        <section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px] gap-4 items-start">
+          <Card className="bg-zinc-900 border-zinc-800 min-w-0"><CardContent className="p-5 space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+              <div><span className="text-zinc-500">UAsset:</span> <span className="font-mono">{uasset?.name || "not loaded"}</span></div>
+              <div><span className="text-zinc-500">UExp:</span> <span className="font-mono">{uexp?.name || "not loaded"}</span></div>
+              <div><span className="text-zinc-500">Palette:</span> <span className="font-mono">offset 0xAD, 8 x 32, float32 RGBA</span></div>
+            </div>
+            <div className="rounded-xl bg-zinc-950 border border-zinc-800 p-3 text-sm text-zinc-300 whitespace-pre-wrap">{status}</div>
+          </CardContent></Card>
+          {pakBuilderPanel}
+        </section>
 
-        <section className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-          <Card className="xl:col-span-2 bg-zinc-900 border-zinc-800"><CardContent className="p-5 space-y-4">
+        <section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-4 items-start">
+          <Card className="bg-zinc-900 border-zinc-800 min-w-0"><CardContent className="p-5 space-y-6">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div>
-                <h2 className="text-xl font-semibold">Palette rows</h2>
-                <p className="text-sm text-zinc-400">For normal deck color mods, keep “patch all 8 columns” on.</p>
+                <h2 className="text-xl font-semibold">Deck Colors</h2>
+                <p className="text-sm text-zinc-400">For normal deck color mods, keep "Patch all 8 columns" enabled.</p>
               </div>
               <label className="flex items-center gap-2 text-sm bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2"><input type="checkbox" checked={patchAllColumns} onChange={(e) => setPatchAllColumns(e.target.checked)}/> Patch all 8 columns</label>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {ROWS.map((r) => (
-                <div key={r.key} className="rounded-2xl bg-zinc-950 border border-zinc-800 p-4 space-y-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div><div className="font-semibold">{r.label}</div><div className="text-xs text-zinc-500">row {r.row} · {r.deck}</div></div>
-                    <div className="w-10 h-10 rounded-xl border border-zinc-700" style={{ background: colors[r.key] }} />
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <input type="color" value={colors[r.key]} onChange={(e) => setColor(r.key, e.target.value)} className="w-12 h-10" />
-                    <input value={colors[r.key]} onChange={(e) => setColor(r.key, e.target.value)} className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 font-mono text-sm" />
-                  </div>
-                </div>
-              ))}
-            </div>
+
+            <RowGroup title="Primary" rows={PRIMARY_ROWS} colors={colors} setColor={setColor} />
+            <RowGroup title="Secondary" rows={SECONDARY_ROWS} colors={colors} setColor={setColor} />
+            <RowGroup title="Tertiary" rows={TERTIARY_ROWS} colors={colors} setColor={setColor} />
           </CardContent></Card>
 
-          <div className="space-y-4">
-            <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-5 space-y-3">
-              <h2 className="text-xl font-semibold flex items-center gap-2"><Package className="w-5 h-5"/>Internal pak builder</h2>
-              <p className="text-sm text-zinc-400">Outputs {PAK_NAME} and {SIG_NAME}. Place both in FUSER’s ~mods folder.</p>
-              <Button onClick={makePatched} className="w-full gap-2"><ShieldCheck className="w-4 h-4"/>Patch UEXP in memory</Button>
-              <Button onClick={exportUexp} className="w-full gap-2 bg-zinc-700 text-zinc-100 hover:bg-zinc-600"><Download className="w-4 h-4"/>Export patched .uexp only</Button>
-              <Button onClick={generatePakSig} className="w-full gap-2"><Package className="w-4 h-4"/>Generate PAK + SIG</Button>
-              <Button onClick={applyTestPreset} className="w-full gap-2 bg-fuchsia-500 hover:bg-fuchsia-400"><Palette className="w-4 h-4"/>Apply obvious test colors</Button>
-              <Button onClick={resetFromLoaded} className="w-full gap-2 bg-zinc-700 text-zinc-100 hover:bg-zinc-600"><RotateCcw className="w-4 h-4"/>Reset from loaded file</Button>
-            </CardContent></Card>
-
-            <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-5 space-y-3">
-              <h2 className="text-xl font-semibold">Loaded column 0 preview</h2>
-              <p className="text-sm text-zinc-400">These are read from TS_LUT_UIPalette.uexp using sRGB preview conversion.</p>
-              <div className="grid grid-cols-1 gap-2 text-sm">
-                {loadedPreview.length ? loadedPreview.slice(0, 12).map((p) => (
-                  <div key={p.key} className="flex items-center gap-2 justify-between rounded-xl bg-zinc-950 border border-zinc-800 px-3 py-2">
-                    <span>{p.label}</span><span className="font-mono text-zinc-400">{p.hex}</span><span className="w-6 h-6 rounded border border-zinc-700" style={{ background: p.hex }}/>
-                  </div>
-                )) : <div className="text-zinc-500">Load a UEXP to preview.</div>}
-              </div>
-            </CardContent></Card>
-          </div>
+          <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-5 space-y-3">
+            <h2 className="text-xl font-semibold">Loaded column 0 preview</h2>
+            <p className="text-sm text-zinc-400">These are read from TS_LUT_UIPalette.uexp using sRGB preview conversion.</p>
+            <div className="grid grid-cols-1 gap-2 text-sm">
+              {loadedPreview.length ? loadedPreview.map((p) => (
+                <div key={p.key} className="flex items-center gap-2 justify-between rounded-xl bg-zinc-950 border border-zinc-800 px-3 py-2">
+                  <span>{p.sublabel}</span><span className="font-mono text-zinc-400">{p.hex}</span><span className="w-10 h-6 rounded border border-zinc-700 pointer-events-none" style={{ background: p.hex }}/>
+                </div>
+              )) : <div className="text-zinc-500">Load a UEXP to preview.</div>}
+            </div>
+          </CardContent></Card>
         </section>
 
         <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-5 text-sm text-zinc-400 space-y-2">
