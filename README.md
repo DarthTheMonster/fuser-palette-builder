@@ -71,16 +71,23 @@ The option currently labeled Patch all 8 columns (Brute Force) / Apply to all 8 
 
 ## Known from testing so far
 
-| Type | Index | Appears to affect |
-| --- | ---: | --- |
-| Row | 0 | Drums |
-| Row | 2 | Bass |
-| Row | 4 | Loop |
-| Row | 6 | Lead |
-| Column | 2 | Colorblind Off |
-| Column | 5 | Protanomaly |
-| Column | 6 | Deuteranomaly |
-| Column | 7 | Tritanomaly |
+### Rows
+
+| Row | Appears to affect |
+| --- | --- |
+| 0 | Drums |
+| 2 | Bass |
+| 4 | Loop |
+| 6 | Lead |
+
+### Columns
+
+| Column | Appears to affect |
+| --- | --- |
+| 2 | Colorblind Off |
+| 5 | Protanomaly |
+| 6 | Deuteranomaly |
+| 7 | Tritanomaly |
 
 Other rows and columns are still being mapped, and the tool will be changed and adapted when more info is revealed.
 
