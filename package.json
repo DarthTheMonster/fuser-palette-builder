@@ -11,15 +11,17 @@
     "tauri:dev": "tauri dev"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.0.0",
-    "@vitejs/plugin-react": "latest",
     "@tailwindcss/vite": "latest",
-    "tailwindcss": "latest",
-    "vite": "latest",
-    "typescript": "latest",
+    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-dialog": "^2.7.1",
+    "@tauri-apps/plugin-fs": "^2.5.1",
+    "@vitejs/plugin-react": "latest",
+    "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "lucide-react": "latest"
+    "tailwindcss": "latest",
+    "typescript": "latest",
+    "vite": "latest"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.0.0"
