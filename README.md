@@ -105,13 +105,13 @@ This should not be treated as general-purpose Unreal Engine pak signing, officia
 
 ## Credits
 
-PAK/SIG compatibility behavior was informed by prior FUSER modding work from NarrikSynthfox's FuserCustomSongCreator and FuserSongLoader (that was forked from Mettra's):
+PAK/SIG compatibility behavior was informed by prior FUSER modding work from NarrikSynthfox's FuserCustomSongCreator (that was forked by elenasayshi) and FuserSongLoader (that was forked from Mettra's):
 
 https://github.com/NarrikSynthfox/FuserCustomSongCreator
 
 https://github.com/NarrikSynthfox/FuserSongLoader (https://github.com/Mettra/FuserSongLoader)
 
-Credit to NarrikSynthfox, Mettra, and contributors for prior FUSER custom-content research and tooling. You guys are awesome!
+Credit to NarrikSynthfox, Mettra, elenasayshi, and contributors for prior FUSER custom-content research and tooling. You guys are awesome!
 
 Thanks to the FUSER modding community for the testing and reverse-engineering work that made this tool possible.
 
