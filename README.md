@@ -40,13 +40,9 @@ The .pak and .sig files must stay together and must have matching names except f
 4. Edit colors in Simple or Advanced mode.
 5. Click Patch UEXP in memory.
 6. Click Generate PAK + SIG.
-7. Copy the generated .pak and .sig into your FUSER ~mods folder.
+7. Copy the generated .pak and .sig into your FUSER Paks folder.
 
-Typical FUSER mods folder:
-
-FUSER\Fuser\Content\Paks\~mods
-
-If ~mods does not exist, create it.
+FUSER\Fuser\Content\Paks
 
 ## Output folder behavior
 
