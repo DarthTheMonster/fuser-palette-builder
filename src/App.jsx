@@ -9,8 +9,8 @@ const HEIGHT = 32;
 const ACTIVE_ROWS = 12;
 const ENTRY_SIZE = 16;
 const MOUNT_POINT = "../../../Fuser/Content/UI/Shared/Textures/";
-const PAK_NAME = "zzz_Custom_Palette_P.pak";
-const SIG_NAME = "zzz_Custom_Palette_P.sig";
+const PAK_NAME = "Custom_Palette_P.pak";
+const SIG_NAME = "Custom_Palette_P.sig";
 const PAK_MAGIC = 0x5a6f12e1;
 const PAK_VERSION = 8;
 const SIG_MAGIC = 0x73832daa;
@@ -29,18 +29,18 @@ const ACTIVE_ROW_LABELS = [
 ];
 
 const ORIGINAL_ACTIVE_HEX = [
-  ["#309BBF", "#F279E6", "#1997CF", "#309BBF", "#0084C4", "#904BF2", "#904BF2", "#058EAC"],
-  ["#3BEDA7", "#9A50D3", "#3BEDA7", "#3BEDA7", "#0084C4", "#67C9FF", "#67C9FF", "#2CC9FF"],
-  ["#904BF2", "#6D8AF2", "#58B32C", "#904BF2", "#62B347", "#F07AEA", "#F07AEA", "#16519D"],
-  ["#67C9FF", "#00CFFF", "#EDE73B", "#67C9FF", "#62B347", "#67FFE1", "#67FFE1", "#0E75C4"],
-  ["#FF4F6C", "#3BDB66", "#F0D830", "#FF4F6C", "#F0D202", "#DCB425", "#DCB425", "#B21D49"],
-  ["#9D65F9", "#2BE9AD", "#F08F30", "#9D65F9", "#F0D202", "#FFF266", "#FFF266", "#FE4179"],
-  ["#E69E39", "#F2616D", "#E62F3E", "#E69E39", "#E6454D", "#186914", "#AD1616", "#FB6949"],
-  ["#FE5C58", "#F49F30", "#A44CD6", "#FF3F3A", "#E6454D", "#EADA30", "#EADA30", "#FFB15E"],
-  ["#904BF2", "#2A95D3", "#AB39ED", "#7A3BED", "#0084C4", "#FFF266", "#FFF266", "#FE4179"],
-  ["#FD4FFF", "#2CF752", "#3BE3ED", "#FD4FFF", "#62B347", "#FFF266", "#FFF266", "#EB8518"],
-  ["#FFE033", "#3078CA", "#F22121", "#FA814D", "#F0D202", "#A667FF", "#A666FF", "#2CC9FF"],
-  ["#F2CF10", "#F430E8", "#D69922", "#FF47FD", "#E6454D", "#A667FF", "#A666FF", "#60D6FF"],
+    ["#309BBF", "#F279E6", "#1997CF", "#309BBF", "#0084C4", "#904BF2", "#904BF2", "#058EAC"],
+    ["#3BEDA7", "#9A50D3", "#3BEDA7", "#3BEDA7", "#0084C4", "#67C9FF", "#67C9FF", "#2CC9FF"],
+    ["#904BF2", "#6D8AF2", "#58B32C", "#904BF2", "#62B347", "#F07AEA", "#F07AEA", "#16519D"],
+    ["#67C9FF", "#00CFFF", "#EDE73B", "#67C9FF", "#62B347", "#67FFE1", "#67FFE1", "#0E75C4"],
+    ["#FF4F6C", "#3BDB66", "#F0D830", "#FF4F6C", "#F0D202", "#DCB425", "#DCB425", "#B21D49"],
+    ["#9D65F9", "#2BE9AD", "#F08F30", "#9D65F9", "#F0D202", "#FFF266", "#FFF266", "#FE4179"],
+    ["#E69E39", "#F2616D", "#E62F3E", "#E69E39", "#E6454D", "#186914", "#AD1616", "#FB6949"],
+    ["#FE5C58", "#F49F30", "#A44CD6", "#FF3F3A", "#E6454D", "#EADA30", "#EADA30", "#FFB15E"],
+    ["#904BF2", "#2A95D3", "#AB39ED", "#7A3BED", "#0084C4", "#FFF266", "#FFF266", "#FE4179"],
+    ["#FD4FFF", "#2CF752", "#3BE3ED", "#FD4FFF", "#62B347", "#FFF266", "#FFF266", "#EB8518"],
+    ["#FFE033", "#3078CA", "#F22121", "#FA814D", "#F0D202", "#A667FF", "#A666FF", "#2CC9FF"],
+    ["#F2CF10", "#F430E8", "#D69922", "#FF47FD", "#E6454D", "#A667FF", "#A666FF", "#60D6FF"],
 ];
 
 const ORIGINAL_SIMPLE = Object.fromEntries(SIMPLE_ROWS.map((r) => [r.key, r.defaultHex]));
@@ -104,6 +104,18 @@ function downloadBytes(name, bytes, mime = "application/octet-stream") {
   URL.revokeObjectURL(url);
 }
 
+
+async function deleteOutputIfExists(outputDirHandle, name) {
+  if (!outputDirHandle) return;
+  try {
+    await outputDirHandle.removeEntry(name);
+  } catch (err) {
+    // Not existing is fine. Browser/WebView names this differently depending on implementation.
+    if (err?.name !== "NotFoundError" && err?.name !== "NotFound" && !String(err?.message || "").toLowerCase().includes("not found")) {
+      throw err;
+    }
+  }
+}
 async function saveBytesToOutput(outputDirHandle, name, bytes, mime = "application/octet-stream") {
   if (!outputDirHandle) {
     downloadBytes(name, bytes, mime);
@@ -345,21 +357,21 @@ function AdvancedGrid({ advancedColors, setAdvancedColor }) {
   return (
     <section className="space-y-3">
       <div>
-        <h2 className="text-xl font-semibold">Advanced palette</h2>
-        <p className="text-sm text-zinc-400">Edit the active 12 x 8 palette block. Rows 12-31 are black filler and are hidden.</p>
+        <h2 className="text-xl font-semibold">Advanced Palette</h2>
+        <p className="text-sm text-zinc-400">Edit the active 12 x 8 palette block. Rows 12-31 are black filler and are hidden.<b> WARNING: Many of these are <i>unknown</i>.</b> If you figure them out please let me know!</p>
       </div>
       <div className="overflow-x-auto rounded-2xl border border-zinc-800 bg-zinc-950">
         <table className="min-w-[980px] w-full table-fixed border-separate border-spacing-0 text-sm">
           <thead>
             <tr className="bg-zinc-900 text-cyan-200">
-              <th className="sticky left-0 bg-zinc-900 p-2 text-left z-10 w-[132px]">Row</th>
+              <th className="sticky left-0 bg-zinc-900 p-2 text-left z-10 w-[45px]">Row</th>
               {cols.map((col) => <th key={col} className="p-2 text-left">Col {col}</th>)}
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => (
               <tr key={row} className="border-t border-zinc-800">
-                <th className="sticky left-0 bg-zinc-950 p-2 text-left text-zinc-300 z-10 whitespace-nowrap w-[132px] text-xs">{row} Â· {ACTIVE_ROW_LABELS[row]}</th>
+                <th className="sticky left-0 bg-zinc-950 p-2 text-left text-zinc-300 z-10 whitespace-nowrap w-[120px] text-xs">{row}</th>
                 {cols.map((col) => {
                   const color = advancedColors[row]?.[col] || "#000000";
                   return (
@@ -481,7 +493,7 @@ export default function App() {
   }
 
   async function exportUexp() {
-    const bytes = patchedUexp || makePatched();
+    const bytes = makePatched();
     if (!bytes) return;
     try {
       const method = await saveBytesToOutput(outputDirHandle, "TS_LUT_UIPalette.uexp", bytes);
@@ -492,7 +504,7 @@ export default function App() {
   }
   async function generatePakSig() {
     if (!uasset?.bytes) return setStatus("Load TS_LUT_UIPalette.uasset first.");
-    const uexpBytes = patchedUexp || makePatched();
+    const uexpBytes = makePatched();
     if (!uexpBytes) return;
     try {
       const pak = await buildPak([
@@ -522,11 +534,11 @@ export default function App() {
           </div>
           <p className="text-xs text-zinc-500">If folder writing is not supported, files will download normally.</p>
         </div>
-        <Button onClick={makePatched} className="w-full gap-2"><ShieldCheck className="w-4 h-4" />Patch UEXP in memory</Button>
-        <Button onClick={exportUexp} className="w-full gap-2 bg-zinc-700 text-zinc-100 hover:bg-zinc-600"><Download className="w-4 h-4" />Export patched .uexp only</Button>
+        <Button onClick={makePatched} className="w-full gap-2"><ShieldCheck className="w-4 h-4" />Patch UEXP in Memory</Button>
+        <Button onClick={exportUexp} className="w-full gap-2 bg-zinc-700 text-zinc-100 hover:bg-zinc-600"><Download className="w-4 h-4" />Export Patched .uexp Only</Button>
         <Button onClick={generatePakSig} className="w-full gap-2"><Package className="w-4 h-4" />Generate PAK + SIG</Button>
-        <Button onClick={applyOriginalPreset} className="w-full gap-2 bg-fuchsia-500 hover:bg-fuchsia-400"><Palette className="w-4 h-4" />Apply original colors</Button>
-        <Button onClick={resetFromLoaded} className="w-full gap-2 bg-zinc-700 text-zinc-100 hover:bg-zinc-600"><RotateCcw className="w-4 h-4" />Reset from loaded file</Button>
+        <Button onClick={applyOriginalPreset} className="w-full gap-2 bg-fuchsia-500 hover:bg-fuchsia-400"><Palette className="w-4 h-4" />Apply Extracted Defaults</Button>
+        <Button onClick={resetFromLoaded} className="w-full gap-2 bg-zinc-700 text-zinc-100 hover:bg-zinc-600"><RotateCcw className="w-4 h-4" />Reset From Loaded File</Button>
       </CardContent>
     </Card>
   );
@@ -536,13 +548,12 @@ export default function App() {
       <div className="w-full max-w-[1500px] mx-auto space-y-6">
         <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <div className="flex items-center gap-3 text-cyan-300 mb-2"><Palette className="w-7 h-7" /><span className="text-sm uppercase tracking-widest">TS_LUT_UIPalette workflow</span></div>
             <h1 className="text-3xl md:text-4xl font-bold leading-tight">FUSER Palette Builder</h1>
             <p className="text-zinc-400 mt-3 max-w-4xl">Patches the confirmed runtime palette source, then builds a minimal replacement .pak and .sig internally.</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <label className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-zinc-800 hover:bg-zinc-700 cursor-pointer shadow"><Upload className="w-4 h-4" />Load .uasset<input className="hidden" type="file" accept=".uasset" onChange={(e) => loadFile(e, "uasset")} /></label>
             <label className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-zinc-800 hover:bg-zinc-700 cursor-pointer shadow"><Upload className="w-4 h-4" />Load .uexp<input className="hidden" type="file" accept=".uexp" onChange={(e) => loadFile(e, "uexp")} /></label>
+            <label className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-zinc-800 hover:bg-zinc-700 cursor-pointer shadow"><Upload className="w-4 h-4" />Load .uasset<input className="hidden" type="file" accept=".uasset" onChange={(e) => loadFile(e, "uasset")} /></label>
           </div>
         </header>
 
@@ -550,8 +561,8 @@ export default function App() {
           <div className="space-y-4 min-w-0">
             <Card className="bg-zinc-900 border-zinc-800 min-w-0"><CardContent className="p-5 space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                <div><span className="text-zinc-500">UAsset:</span> <span className="font-mono">{uasset?.name || "not loaded"}</span></div>
                 <div><span className="text-zinc-500">UExp:</span> <span className="font-mono">{uexp?.name || "not loaded"}</span></div>
+                <div><span className="text-zinc-500">UAsset:</span> <span className="font-mono">{uasset?.name || "not loaded"}</span></div>
                 <div><span className="text-zinc-500">Palette:</span> <span className="font-mono">offset 0xAD, 8 x 32, float32 RGBA</span></div>
               </div>
               <div className="rounded-xl bg-zinc-950 border border-zinc-800 p-3 text-sm text-zinc-300 whitespace-pre-wrap">{status}</div>
@@ -560,12 +571,12 @@ export default function App() {
             <Card className="bg-zinc-900 border-zinc-800 min-w-0"><CardContent className="p-5 space-y-6">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div>
-                  <h2 className="text-xl font-semibold">Palette controls</h2>
+                  <h2 className="text-xl font-semibold">Palette Controls</h2>
                   <p className="text-sm text-zinc-400">Simple edits only the four main deck colors. Advanced edits the active 12 x 8 palette block.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => setMode("simple")} className={mode === "simple" ? "" : "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"}>Simple</Button>
-                  <Button onClick={() => setMode("advanced")} className={mode === "advanced" ? "" : "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"}>Advanced</Button>
+                  <Button onClick={() => { setMode("simple"); setPatchedUexp(null); }} className={mode === "simple" ? "" : "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"}>Simple</Button>
+                  <Button onClick={() => { setMode("advanced"); setPatchedUexp(null); }} className={mode === "advanced" ? "" : "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"}>Advanced</Button>
                 </div>
               </div>
 
@@ -573,10 +584,10 @@ export default function App() {
                 <section className="space-y-4">
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div>
-                      <h3 className="text-xl font-semibold text-cyan-200">Primary deck colors</h3>
-                      <p className="text-sm text-zinc-400">For normal deck color mods, keep Patch all 8 columns enabled.</p>
+                      <h3 className="text-xl font-semibold text-cyan-200">Primary Deck Colors</h3>
+                      <p className="text-sm text-zinc-400">For normal deck color mods, keep Patch all 8 columns enabled at the moment. It brute forces the colors.</p>
                     </div>
-                    <label className="flex items-center gap-2 text-sm bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2"><input type="checkbox" checked={patchAllColumns} onChange={(e) => setPatchAllColumns(e.target.checked)} /> Patch all 8 columns</label>
+                    <label className="flex items-center gap-2 text-sm bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2"><input type="checkbox" checked={patchAllColumns} onChange={(e) => { setPatchAllColumns(e.target.checked); setPatchedUexp(null); }} /> Patch all 8 columns (Brute Force)</label>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-3">
                     {SIMPLE_ROWS.map((r) => <ColorCard key={r.key} rowDef={r} color={simpleColors[r.key]} setColor={setSimpleColor} />)}
@@ -591,7 +602,7 @@ export default function App() {
           <div className={mode === "advanced" ? "grid grid-cols-1 lg:grid-cols-2 gap-4" : "space-y-4"}>
             {pakBuilderPanel}
             <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-5 space-y-3">
-              <h2 className="text-xl font-semibold">Loaded column 0 preview</h2>
+              <h2 className="text-xl font-semibold">Colors Grabbed from Files</h2>
               <p className="text-sm text-zinc-400">These are read from TS_LUT_UIPalette.uexp using sRGB preview conversion.</p>
               <div className="grid grid-cols-1 gap-2 text-sm">
                 {loadedPreview.length ? loadedPreview.map((p) => (
@@ -605,7 +616,7 @@ export default function App() {
         </section>
 
         <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-5 text-sm text-zinc-400 space-y-2">
-          <p className="font-semibold text-zinc-200">Confirmed pipeline</p>
+          <p className="font-semibold text-zinc-200">Confirmed Pipeline</p>
           <p><span className="font-mono">TS_LUT_UIPalette.uexp</span> stores the sampled image cache at offset <span className="font-mono">0xAD</span>. FUSER samples this ColorPaletteAtlas, then writes runtime colors into MPC_Hype. This app patches the upstream LUT, not the downstream MPC defaults.</p>
           <p>Pak mount point: <span className="font-mono">{MOUNT_POINT}</span></p>
         </CardContent></Card>
@@ -613,4 +624,9 @@ export default function App() {
     </main>
   );
 }
+
+
+
+
+
 
