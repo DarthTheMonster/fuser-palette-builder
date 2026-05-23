@@ -7,3 +7,85 @@
 }
 body { margin: 0; min-width: 320px; min-height: 100vh; background: #09090b; color: #f4f4f5; }
 input[type="color"] { background: transparent; border: 0; padding: 0; }
+
+/* Advanced palette table: no scroll-wheel number boxes */
+.advanced-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  background: rgba(9,9,11,0.72);
+}
+
+.advanced-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.advanced-table th,
+.advanced-table td {
+  padding: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  vertical-align: middle;
+}
+
+.advanced-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgb(24,24,27);
+  color: rgb(165,243,252);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.advanced-row-label {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: rgb(24,24,27);
+  color: rgb(212,212,216);
+  white-space: nowrap;
+  font-size: 12px;
+  min-width: 64px;
+}
+
+.advanced-cell {
+  display: grid;
+  grid-template-columns: 34px 82px;
+  gap: 6px;
+  align-items: center;
+}
+
+.advanced-color-picker {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.advanced-hex-input {
+  width: 82px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgb(24,24,27);
+  color: rgb(244,244,245);
+  padding: 0 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  outline: none;
+}
+
+.advanced-hex-input:focus {
+  border-color: rgba(34,211,238,0.65);
+  box-shadow: 0 0 0 2px rgba(34,211,238,0.15);
+}
+
