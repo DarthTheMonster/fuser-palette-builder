@@ -25,8 +25,8 @@ The tool loads the cooked FUSER palette asset pair:
 
 It can then generate:
 
-- zzz_Custom_Palette_P.pak
-- zzz_Custom_Palette_P.sig
+- Custom_Palette_P.pak
+- Custom_Palette_P.sig
 
 Place both generated files in your FUSER Content\Paks\~mods folder.
 
@@ -62,25 +62,27 @@ Simple mode is for quick deck color edits.
 
 It exposes the main editable deck color controls without requiring you to manually edit the full palette grid.
 
-The option currently labeled Patch all 8 columns / Apply to all 8 variants forces the selected simple color across all 8 sampled slots for that row. This is the most reliable way to make the color show up everywhere, but it may overwrite palette variants that FUSER uses for colorblind modes or other UI contexts.
+The option currently labeled Patch all 8 columns (Brute Force) / Apply to all 8 variants forces the selected simple color across all 8 sampled slots for that row. This is the most reliable way to make the color show up everywhere, but it may overwrite palette variants that FUSER uses for colorblind modes or other UI contexts.
 
 ## Advanced mode
 
-Advanced mode exposes the active 12 x 8 palette block.
+> [!NOTE]
+> Many advanced row/column meanings are still unknown. This tool intentionally does **not** claim a complete map yet.
 
-Many advanced row/column meanings are still unknown. This tool intentionally does not claim a complete map yet.
+## Known from testing so far
 
-Known from testing so far:
+| Type | Index | Appears to affect |
+| --- | ---: | --- |
+| Row | 0 | Drums |
+| Row | 2 | Bass |
+| Row | 4 | Loop |
+| Row | 6 | Lead |
+| Column | 2 | Colorblind Off |
+| Column | 5 | Protanomaly |
+| Column | 6 | Deuteranomaly |
+| Column | 7 | Tritanomaly |
 
-- Row 0 appears to affect Beat Primary / Drums.
-- For Row 0, Column 2 appears to affect Colorblind Off.
-- For Row 0, Column 5 appears to affect Protanomaly.
-- For Row 0, Column 6 appears to affect Deuteranomaly.
-- For Row 0, Column 7 appears to affect Tritanomaly.
-
-Other rows and columns are still being mapped.
-
-If you discover what a row or column controls, please open an issue with screenshots and your test colors.
+Other rows and columns are still being mapped, and the tool will be changed and adapted when more info is revealed.
 
 ## About original / default colors
 
