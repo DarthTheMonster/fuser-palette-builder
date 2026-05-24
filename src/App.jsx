@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Download, Upload, Palette, Package, RotateCcw, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "./components/ui/card";
 import { Button } from "./components/ui/button";
@@ -15,18 +15,118 @@ const PAK_MAGIC = 0x5a6f12e1;
 const PAK_VERSION = 8;
 const SIG_MAGIC = 0x73832daa;
 
-const SIMPLE_ROWS = [
-  { row: 0, key: "BeatBase", label: "Deck 1", sublabel: "Beat / Primary", defaultHex: "#309BBF" },
-  { row: 2, key: "BassBase", label: "Deck 2", sublabel: "Bass / Primary", defaultHex: "#904BF2" },
-  { row: 4, key: "LoopBase", label: "Deck 3", sublabel: "Loop / Primary", defaultHex: "#FF4F6C" },
-  { row: 6, key: "LeadBase", label: "Deck 4", sublabel: "Lead / Primary", defaultHex: "#E69E39" },
+const ACTIVE_ROW_DEFS = [
+  {
+    row: 0,
+    key: "BeatMain",
+    label: "Beat Main",
+    sublabel: "Drums / main color",
+    detail: "Beat main color; Beat instrument square grid base color; Beat instrument circle grid left-click color",
+  },
+  {
+    row: 1,
+    key: "BeatRightClick",
+    label: "Beat Right Click",
+    sublabel: "Drums / right-click color",
+    detail: "Beat instrument right-click color for all grid shapes",
+  },
+  {
+    row: 2,
+    key: "BassMain",
+    label: "Bass Main",
+    sublabel: "Bass / main color",
+    detail: "Bass main color; Bass instrument square grid base color; Bass instrument circle grid left-click color",
+  },
+  {
+    row: 3,
+    key: "BassRightClick",
+    label: "Bass Right Click",
+    sublabel: "Bass / right-click color",
+    detail: "Bass instrument right-click color for all grid shapes",
+  },
+  {
+    row: 4,
+    key: "LoopMain",
+    label: "Loop Main",
+    sublabel: "Loop / main color",
+    detail: "Loop main color; Loop instrument square grid base color; Loop instrument circle grid left-click color",
+  },
+  {
+    row: 5,
+    key: "LoopRightClick",
+    label: "Loop Right Click",
+    sublabel: "Loop / right-click color",
+    detail: "Loop instrument right-click color for all grid shapes",
+  },
+  {
+    row: 6,
+    key: "LeadMain",
+    label: "Lead Main",
+    sublabel: "Lead / main color",
+    detail: "Lead main color; Lead instrument square grid base color; Lead instrument circle grid left-click color",
+  },
+  {
+    row: 7,
+    key: "LeadRightClick",
+    label: "Lead Right Click",
+    sublabel: "Lead / right-click color",
+    detail: "Lead instrument right-click color for all grid shapes",
+  },
+  {
+    row: 8,
+    key: "BeatGridAlt",
+    label: "Beat Grid Alt",
+    sublabel: "Drums / alternate grid color",
+    detail: "Beat instrument circle grid base color; Beat instrument square grid left-click color",
+  },
+  {
+    row: 9,
+    key: "BassGridAlt",
+    label: "Bass Grid Alt",
+    sublabel: "Bass / alternate grid color",
+    detail: "Bass instrument circle grid base color; Bass instrument square grid left-click color",
+  },
+  {
+    row: 10,
+    key: "LoopGridAlt",
+    label: "Loop Grid Alt",
+    sublabel: "Loop / alternate grid color",
+    detail: "Loop instrument circle grid base color; Loop instrument square grid left-click color",
+  },
+  {
+    row: 11,
+    key: "LeadGridAlt",
+    label: "Lead Grid Alt",
+    sublabel: "Lead / alternate grid color",
+    detail: "Lead instrument circle grid base color; Lead instrument square grid left-click color",
+  },
 ];
 
-const ACTIVE_ROW_LABELS = [
-  "Beat Base", "Beat Secondary", "Bass Base", "Bass Secondary",
-  "Loop Base", "Loop Secondary", "Lead Base", "Lead Secondary",
-  "Beat Tertiary", "Bass Tertiary", "Loop Tertiary", "Lead Tertiary",
+const TEMPLATE_COLUMNS = [
+  { col: 0, key: "unknown0", label: "N/A", detail: "Unknown / currently unmapped" },
+  { col: 1, key: "playstation", label: "PlayStation", detail: "Colorblindness: none" },
+  { col: 2, key: "xbox", label: "Xbox", detail: "Colorblindness: none" },
+  { col: 3, key: "switch", label: "Switch", detail: "Colorblindness: none" },
+  { col: 4, key: "unknown4", label: "N/A", detail: "Unknown / currently unmapped" },
+  { col: 5, key: "protanomaly", label: "Protanomaly", detail: "Colorblind override" },
+  { col: 6, key: "deuteranomaly", label: "Deuteranomaly", detail: "Colorblind override" },
+  { col: 7, key: "tritanomaly", label: "Tritanomaly", detail: "Colorblind override" },
 ];
+
+const SIMPLE_TEMPLATE_CHOICES = [
+  { col: 1, key: "playstation", label: "PlayStation", detail: "Colorblindness: none" },
+  { col: 2, key: "xbox", label: "Xbox / Default", detail: "Colorblindness: none" },
+  { col: 3, key: "switch", label: "Nintendo Switch", detail: "Colorblindness: none" },
+  { col: 5, key: "protanomaly", label: "Protanomaly", detail: "Colorblind override" },
+  { col: 6, key: "deuteranomaly", label: "Deuteranomaly", detail: "Colorblind override" },
+  { col: 7, key: "tritanomaly", label: "Tritanomaly", detail: "Colorblind override" },
+  { col: 0, key: "unknown0", label: "N/A 0", detail: "Unknown / currently unmapped" },
+  { col: 4, key: "unknown4", label: "N/A 4", detail: "Unknown / currently unmapped" },
+];
+
+function getSimpleTemplateChoice(key) {
+  return SIMPLE_TEMPLATE_CHOICES.find((template) => template.key === key) || SIMPLE_TEMPLATE_CHOICES[1];
+}
 
 const ORIGINAL_ACTIVE_HEX = [
     ["#309BBF", "#F279E6", "#1997CF", "#309BBF", "#0084C4", "#904BF2", "#904BF2", "#058EAC"],
@@ -43,7 +143,49 @@ const ORIGINAL_ACTIVE_HEX = [
     ["#F2CF10", "#F430E8", "#D69922", "#FF47FD", "#E6454D", "#A667FF", "#A666FF", "#60D6FF"],
 ];
 
+const SIMPLE_ROWS = ACTIVE_ROW_DEFS.map((rowDef) => ({
+  ...rowDef,
+  // Column 2 is the discovered Xbox/default template.
+  defaultHex: ORIGINAL_ACTIVE_HEX[rowDef.row]?.[2] || "#000000",
+}));
+
 const ORIGINAL_SIMPLE = Object.fromEntries(SIMPLE_ROWS.map((r) => [r.key, r.defaultHex]));
+
+const SIMPLE_GROUPS = [
+  {
+    key: "beats",
+    label: "Beats",
+    subtitle: "First Deck",
+    rows: [0, 1, 8],
+    notes: "Main color, right-click color, and alternate grid color for Beat instruments.",
+  },
+  {
+    key: "bass",
+    label: "Bass",
+    subtitle: "Second Deck",
+    rows: [2, 3, 9],
+    notes: "Main color, right-click color, and alternate grid color for Bass instruments.",
+  },
+  {
+    key: "loops",
+    label: "Loops",
+    subtitle: "Third Deck",
+    rows: [4, 5, 10],
+    notes: "Main color, right-click color, and alternate grid color for Loop instruments.",
+  },
+  {
+    key: "leads",
+    label: "Leads",
+    subtitle: "Fourth Deck",
+    rows: [6, 7, 11],
+    notes: "Main color, right-click color, and alternate grid color for Lead instruments.",
+  },
+];
+
+function getSimpleRow(rowNumber) {
+  return SIMPLE_ROWS.find((row) => row.row === rowNumber);
+}
+
 
 function srgbToLinear01(c) {
   const v = c / 255;
@@ -263,23 +405,16 @@ function writeColor(view, row, col, hex) {
   view.setFloat32(off + 8, rgba[2], true);
   view.setFloat32(off + 12, rgba[3], true);
 }
-function patchUexp(originalBytes, mode, simpleColors, advancedColors, patchAllColumns) {
+function patchUexp(originalBytes, mode, simpleColors, advancedColors, simpleTemplateKey) {
   const out = new Uint8Array(originalBytes);
   const view = new DataView(out.buffer);
 
-  if (mode === "advanced") {
-    for (let row = 0; row < ACTIVE_ROWS; row++) {
-      if (patchAllColumns) {
-        const rowColor = advancedColors[row]?.[0] || "#000000";
-        for (let col = 0; col < WIDTH; col++) writeColor(view, row, col, rowColor);
-      } else {
-        for (let col = 0; col < WIDTH; col++) writeColor(view, row, col, advancedColors[row]?.[col] || "#000000");
-      }
-    }
-  } else {
-    for (const rowDef of SIMPLE_ROWS) {
-      const columns = patchAllColumns ? Array.from({ length: WIDTH }, (_, i) => i) : [0];
-      for (const col of columns) writeColor(view, rowDef.row, col, simpleColors[rowDef.key]);
+  // Simple mode is now a template-focused editing view over advancedColors.
+  // The generated UEXP always writes the full active 12 x 8 palette block,
+  // so switching templates preserves each template's separate values.
+  for (let row = 0; row < ACTIVE_ROWS; row++) {
+    for (let col = 0; col < WIDTH; col++) {
+      writeColor(view, row, col, advancedColors[row]?.[col] || "#000000");
     }
   }
 
@@ -293,10 +428,11 @@ function makeAdvancedFromBytes(bytes) {
     })
   );
 }
-function makeSimpleFromBytes(bytes) {
+function makeSimpleFromBytes(bytes, templateKey = "xbox") {
+  const template = getSimpleTemplateChoice(templateKey);
   const next = { ...ORIGINAL_SIMPLE };
   for (const r of SIMPLE_ROWS) {
-    const [rr, gg, bb] = readColor(bytes, r.row, 0);
+    const [rr, gg, bb] = readColor(bytes, r.row, template.col);
     next[r.key] = linearRgbaToHex(rr, gg, bb);
   }
   return next;
@@ -331,54 +467,110 @@ function HexDraftInput({ value, onCommit, className = "" }) {
     />
   );
 }
-function ColorCard({ rowDef, color, setColor }) {
+function ColorCard({ rowDef, color, setColor, compact = false }) {
   const risky = isRiskyForSongLabels(color);
   return (
-    <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-4 space-y-3">
+    <div className={compact ? "rounded-xl bg-zinc-950 border border-zinc-800 p-3 space-y-2" : "rounded-2xl bg-zinc-950 border border-zinc-800 p-4 space-y-3"}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-lg font-bold">{rowDef.label}</div>
+          <div className={compact ? "text-base font-bold" : "text-lg font-bold"}>{rowDef.label}</div>
           <div className="text-sm text-zinc-400">{rowDef.sublabel}</div>
+          {!compact && <div className="text-xs text-zinc-500 max-w-xs">{rowDef.detail}</div>}
         </div>
         <div className="text-xs text-zinc-600 font-mono">row {rowDef.row}</div>
       </div>
-      <div className="h-16 w-full rounded-xl border border-zinc-700 pointer-events-none shadow-inner" style={{ background: color }} title="Color preview" />
+      <div className={compact ? "h-10 w-full rounded-lg border border-zinc-700 pointer-events-none shadow-inner" : "h-16 w-full rounded-xl border border-zinc-700 pointer-events-none shadow-inner"} style={{ background: color }} title="Color preview" />
       {risky && <div className="rounded-xl border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-200">Readability warning: this color may make song labels hard to read in-game.</div>}
       <div className="flex flex-wrap gap-2 items-center">
         <input type="color" value={color} onChange={(e) => setColor(rowDef.key, e.target.value.toUpperCase())} className="w-12 h-10" title="Pick color" />
         <HexDraftInput value={color} onCommit={(next) => setColor(rowDef.key, next)} />
       </div>
+      {compact && <div className="text-[11px] leading-snug text-zinc-500">{rowDef.detail}</div>}
     </div>
   );
 }
+
+function SimpleGroupedPalette({ simpleColors, setSimpleColor }) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
+      {SIMPLE_GROUPS.map((group) => (
+        <div key={group.key} className="rounded-2xl bg-zinc-950 border border-zinc-800 p-4 space-y-3">
+          <div className="space-y-1">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h4 className="text-lg font-bold text-cyan-100">{group.label}</h4>
+                <p className="text-sm text-zinc-400">{group.subtitle}</p>
+              </div>
+              <div className="text-[10px] uppercase tracking-wide text-zinc-600 text-right">
+                {group.rows.map((row) => `Row ${row}`).join(" / ")}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {group.rows.map((rowNumber) => {
+              const rowDef = getSimpleRow(rowNumber);
+              if (!rowDef) return null;
+              return (
+                <ColorCard
+                  key={rowDef.key}
+                  rowDef={rowDef}
+                  color={simpleColors[rowDef.key]}
+                  setColor={setSimpleColor}
+                  compact
+                />
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function AdvancedGrid({ advancedColors, setAdvancedColor }) {
-  const cols = Array.from({ length: WIDTH }, (_, col) => col);
-  const rows = Array.from({ length: ACTIVE_ROWS }, (_, row) => row);
+  const rows = ACTIVE_ROW_DEFS;
   return (
     <section className="space-y-3">
       <div>
         <h2 className="text-xl font-semibold">Advanced Palette</h2>
-        <p className="text-sm text-zinc-400">Edit the active 12 x 8 palette block. Rows 12-31 are black filler and are hidden.<b> WARNING: Many of these are <i>unknown</i>.</b> If you figure them out please let me know!</p>
+        <p className="text-sm text-zinc-400">
+          Edit the active 12 x 8 palette block. Rows define gameplay/UI usage; columns define platform or colorblind templates.
+          Rows 12-31 are black filler and are hidden.
+        </p>
       </div>
       <div className="overflow-x-auto rounded-2xl border border-zinc-800 bg-zinc-950">
-        <table className="min-w-[980px] w-full table-fixed border-separate border-spacing-0 text-sm">
+        <table className="min-w-[1220px] w-full table-fixed border-separate border-spacing-0 text-sm">
           <thead>
             <tr className="bg-zinc-900 text-cyan-200">
-              <th className="sticky left-0 bg-zinc-900 p-2 text-left z-10 w-[45px]">Row</th>
-              {cols.map((col) => <th key={col} className="p-2 text-left">Col {col}</th>)}
+              <th className="sticky left-0 bg-zinc-900 p-2 text-left z-10 w-[170px]">Row / usage</th>
+              {TEMPLATE_COLUMNS.map((template) => (
+                <th key={template.col} className="p-2 text-left align-top" title={template.detail}>
+                  <div className="font-semibold">{template.label}</div>
+                  <div className="text-[10px] leading-tight text-cyan-100/70">Col {template.col}</div>
+                  <div className="text-[10px] leading-tight text-zinc-400">{template.detail}</div>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={row} className="border-t border-zinc-800">
-                <th className="sticky left-0 bg-zinc-950 p-2 text-left text-zinc-300 z-10 whitespace-nowrap w-[120px] text-xs">{row}</th>
-                {cols.map((col) => {
-                  const color = advancedColors[row]?.[col] || "#000000";
+            {rows.map((rowDef) => (
+              <tr key={rowDef.row} className="border-t border-zinc-800">
+                <th
+                  className="sticky left-0 bg-zinc-950 p-2 text-left text-zinc-300 z-10 whitespace-normal w-[170px] text-xs align-top"
+                  title={rowDef.detail}
+                >
+                  <div className="font-bold text-zinc-100">Row {rowDef.row}</div>
+                  <div className="text-cyan-200">{rowDef.label}</div>
+                  <div className="text-[10px] leading-tight text-zinc-500">{rowDef.detail}</div>
+                </th>
+                {TEMPLATE_COLUMNS.map((template) => {
+                  const color = advancedColors[rowDef.row]?.[template.col] || "#000000";
                   return (
-                    <td key={`${row}-${col}`} className="p-1.5 border-l border-zinc-900">
+                    <td key={`${rowDef.row}-${template.col}`} className="p-1.5 border-l border-zinc-900 align-top">
                       <div className="grid grid-cols-[28px_minmax(0,1fr)] gap-1.5 items-center min-w-0">
-                        <input type="color" value={color} onChange={(e) => setAdvancedColor(row, col, e.target.value.toUpperCase())} className="w-[28px] h-[30px] p-0 rounded border border-zinc-700 bg-transparent" />
-                        <HexDraftInput value={color} onCommit={(next) => setAdvancedColor(row, col, next)} className="w-full min-w-0 h-[30px] bg-zinc-900 border border-zinc-800 rounded-lg px-1.5 font-mono text-[11px]" />
+                        <input type="color" value={color} onChange={(e) => setAdvancedColor(rowDef.row, template.col, e.target.value.toUpperCase())} className="w-[28px] h-[30px] p-0 rounded border border-zinc-700 bg-transparent" />
+                        <HexDraftInput value={color} onCommit={(next) => setAdvancedColor(rowDef.row, template.col, next)} className="w-full min-w-0 h-[30px] bg-zinc-900 border border-zinc-800 rounded-lg px-1.5 font-mono text-[11px]" />
                       </div>
                     </td>
                   );
@@ -397,24 +589,33 @@ export default function App() {
   const [uexp, setUexp] = useState(null);
   const [patchedUexp, setPatchedUexp] = useState(null);
   const [mode, setMode] = useState("simple");
-  const [patchAllColumns, setPatchAllColumns] = useState(true);
+  const [simpleTemplateKey, setSimpleTemplateKey] = useState("xbox");
   const [status, setStatus] = useState("Load TS_LUT_UIPalette.uasset and TS_LUT_UIPalette.uexp.");
-  const [simpleColors, setSimpleColors] = useState(() => ({ ...ORIGINAL_SIMPLE }));
   const [advancedColors, setAdvancedColors] = useState(() => ORIGINAL_ACTIVE_HEX.map((row) => [...row]));
   const [outputDirHandle, setOutputDirHandle] = useState(null);
   const [outputDirName, setOutputDirName] = useState("");
+
+  const selectedTemplate = getSimpleTemplateChoice(simpleTemplateKey);
+
+  const simpleColors = useMemo(() => {
+    const next = { ...ORIGINAL_SIMPLE };
+    for (const rowDef of SIMPLE_ROWS) {
+      next[rowDef.key] = advancedColors[rowDef.row]?.[selectedTemplate.col] || "#000000";
+    }
+    return next;
+  }, [advancedColors, selectedTemplate.col]);
 
   const loadedPreview = useMemo(() => {
     if (!uexp?.bytes) return [];
     return SIMPLE_ROWS.map((r) => {
       try {
-        const [rr, gg, bb, aa] = readColor(uexp.bytes, r.row, 0);
+        const [rr, gg, bb, aa] = readColor(uexp.bytes, r.row, selectedTemplate.col);
         return { ...r, hex: linearRgbaToHex(rr, gg, bb), alpha: aa };
       } catch {
         return { ...r, hex: "#000000", alpha: 0 };
       }
     });
-  }, [uexp]);
+  }, [uexp, selectedTemplate.col]);
 
   async function loadFile(e, kind) {
     const file = e.target.files?.[0];
@@ -432,13 +633,19 @@ export default function App() {
     if (problem) return setStatus(`Rejected ${file.name}: ${problem}.`);
     setUexp({ name: file.name, bytes });
     setPatchedUexp(null);
-    setSimpleColors(makeSimpleFromBytes(bytes));
     setAdvancedColors(makeAdvancedFromBytes(bytes));
-    setStatus(`Loaded ${file.name}. Read editable colors from column 0 and active 12-row palette block.`);
+    setStatus(`Loaded ${file.name}. Loaded the full active 12-row palette block.`);
   }
 
   function setSimpleColor(key, hex) {
-    setSimpleColors((c) => ({ ...c, [key]: normalizeHex(hex) }));
+    const rowDef = SIMPLE_ROWS.find((row) => row.key === key);
+    if (!rowDef) return;
+    const normalized = normalizeHex(hex);
+    setAdvancedColors((old) => old.map((row, rowIndex) => (
+      rowIndex === rowDef.row
+        ? row.map((value, colIndex) => colIndex === selectedTemplate.col ? normalized : value)
+        : row
+    )));
     setPatchedUexp(null);
   }
   function setAdvancedColor(row, col, hex) {
@@ -447,13 +654,11 @@ export default function App() {
   }
   function resetFromLoaded() {
     if (!uexp?.bytes) return setStatus("Load TS_LUT_UIPalette.uexp first.");
-    setSimpleColors(makeSimpleFromBytes(uexp.bytes));
     setAdvancedColors(makeAdvancedFromBytes(uexp.bytes));
     setPatchedUexp(null);
     setStatus("Reset controls to loaded TS_LUT_UIPalette values.");
   }
   function applyOriginalPreset() {
-    setSimpleColors({ ...ORIGINAL_SIMPLE });
     setAdvancedColors(ORIGINAL_ACTIVE_HEX.map((row) => [...row]));
     setPatchedUexp(null);
     setStatus("Applied original TS_LUT_UIPalette colors.");
@@ -463,9 +668,13 @@ export default function App() {
       setStatus("Load TS_LUT_UIPalette.uexp first.");
       return null;
     }
-    const bytes = patchUexp(uexp.bytes, mode, simpleColors, advancedColors, patchAllColumns);
+    const bytes = patchUexp(uexp.bytes, mode, simpleColors, advancedColors, simpleTemplateKey);
     setPatchedUexp(bytes);
-    setStatus(mode === "advanced" ? "Patched UEXP in memory using Advanced active 12 x 8 palette values. Patch all 8 columns mirrors column 0 across each active row." : `Patched UEXP in memory using Simple deck colors. ${patchAllColumns ? "All 8 columns" : "Only column 0"} were patched for the 4 primary deck rows.`);
+    if (mode === "advanced") {
+      setStatus("Patched UEXP in memory using Advanced active 12 x 8 palette values.");
+    } else {
+      setStatus(`Patched UEXP in memory using the full active palette. Simple is currently editing ${selectedTemplate.label} (column ${selectedTemplate.col}).`);
+    }
     return bytes;
   }
   async function chooseOutputFolder() {
@@ -512,6 +721,8 @@ export default function App() {
         { name: "TS_LUT_UIPalette.uexp", bytes: uexpBytes },
       ]);
       const sig = buildSig(pak);
+      await deleteOutputIfExists(outputDirHandle, PAK_NAME);
+      await deleteOutputIfExists(outputDirHandle, SIG_NAME);
       const method = await saveBytesToOutput(outputDirHandle, PAK_NAME, pak);
       await saveBytesToOutput(outputDirHandle, SIG_NAME, sig);
       setStatus(`Generated ${PAK_NAME} and ${SIG_NAME} ${method === "folder" ? "in the selected output folder" : "as downloads"}. Mount: ${MOUNT_POINT}. Pak ${pak.length} bytes, sig ${sig.length} bytes.`);
@@ -572,7 +783,7 @@ export default function App() {
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div>
                   <h2 className="text-xl font-semibold">Palette Controls</h2>
-                  <p className="text-sm text-zinc-400">Simple edits only the four main deck colors. Advanced edits the active 12 x 8 palette block.</p>
+                  <p className="text-sm text-zinc-400">Simple edits one platform/colorblind template at a time. Advanced edits the full active 12 x 8 palette block.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={() => { setMode("simple"); setPatchedUexp(null); }} className={mode === "simple" ? "" : "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"}>Simple</Button>
@@ -582,16 +793,27 @@ export default function App() {
 
               {mode === "simple" ? (
                 <section className="space-y-4">
-                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div>
-                      <h3 className="text-xl font-semibold text-cyan-200">Primary Deck Colors</h3>
-                      <p className="text-sm text-zinc-400">For normal deck color mods, keep Patch all 8 columns enabled at the moment. It brute forces the colors.</p>
+                      <h3 className="text-xl font-semibold text-cyan-200">Template Editor</h3>
+                      <p className="text-sm text-zinc-400">Pick one platform/colorblind template, then edit Beats, Bass, Loops, and Leads in the same left-to-right order as the game.</p>
                     </div>
-                    <label className="flex items-center gap-2 text-sm bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2"><input type="checkbox" checked={patchAllColumns} onChange={(e) => { setPatchAllColumns(e.target.checked); setPatchedUexp(null); }} /> Patch all 8 columns (Brute Force)</label>
+                    <div className="min-w-[280px] rounded-xl bg-zinc-950 border border-zinc-800 p-3 space-y-2">
+                      <label className="block text-xs uppercase tracking-wide text-zinc-500" htmlFor="templateTarget">Currently editing template</label>
+                      <select
+                        id="templateTarget"
+                        value={simpleTemplateKey}
+                        onChange={(e) => { setSimpleTemplateKey(e.target.value); setPatchedUexp(null); }}
+                        className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm"
+                      >
+                        {SIMPLE_TEMPLATE_CHOICES.map((template) => (
+                          <option key={template.key} value={template.key}>{template.label}</option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-zinc-400">Editing column {selectedTemplate.col}: {selectedTemplate.detail}. Switch templates to edit another platform/colorblind palette without losing this one.</p>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-3">
-                    {SIMPLE_ROWS.map((r) => <ColorCard key={r.key} rowDef={r} color={simpleColors[r.key]} setColor={setSimpleColor} />)}
-                  </div>
+                  <SimpleGroupedPalette simpleColors={simpleColors} setSimpleColor={setSimpleColor} />
                 </section>
               ) : (
                 <AdvancedGrid advancedColors={advancedColors} setAdvancedColor={setAdvancedColor} />
@@ -602,8 +824,8 @@ export default function App() {
           <div className={mode === "advanced" ? "grid grid-cols-1 lg:grid-cols-2 gap-4" : "space-y-4"}>
             {pakBuilderPanel}
             <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-5 space-y-3">
-              <h2 className="text-xl font-semibold">Colors Grabbed from Files</h2>
-              <p className="text-sm text-zinc-400">These are read from TS_LUT_UIPalette.uexp using sRGB preview conversion.</p>
+              <h2 className="text-xl font-semibold">Loaded Template Preview</h2>
+              <p className="text-sm text-zinc-400">These are read from the currently selected template column using sRGB preview conversion.</p>
               <div className="grid grid-cols-1 gap-2 text-sm">
                 {loadedPreview.length ? loadedPreview.map((p) => (
                   <div key={p.key} className="flex items-center gap-2 justify-between rounded-xl bg-zinc-950 border border-zinc-800 px-3 py-2">
