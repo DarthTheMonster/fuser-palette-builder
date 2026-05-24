@@ -126,7 +126,7 @@ The current community-tested model is:
 | 6 | Deuteranomaly |
 | 7 | Tritanomaly |
 
-If more row or column behavior is discovered, the tool can be updated again.
+If more row or column behavior is discovered, the tool can be updated again. Thanks to blahaszi for assisting with this!
 
 ## About original / default colors
 
