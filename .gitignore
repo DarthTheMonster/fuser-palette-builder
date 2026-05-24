@@ -1,7 +1,22 @@
-﻿node_modules/
+# Local backups
+*.bak
+*.bak_*
+
+# Local exported text/debug files
+App.txt
+
+# Temporary Windows junk
+Thumbs.db
+Desktop.ini
+
+# Node / build junk
+node_modules/
 dist/
+
+# Tauri build output
 src-tauri/target/
-.vite/
-.DS_Store
-*.log
-*.tmp
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
